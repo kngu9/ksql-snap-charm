@@ -34,6 +34,8 @@ parts:
     override-build: |-
       wget -qO - https://packages.confluent.io/deb/5.1/archive.key | sudo apt-key add -
       sudo add-apt-repository "deb [arch=amd64] https://packages.confluent.io/deb/5.1 stable main"
+    stage:
+    - -usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
   ksql:
     after:
     - deps
