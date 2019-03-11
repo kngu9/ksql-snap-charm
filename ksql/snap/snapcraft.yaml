@@ -1,0 +1,44 @@
+name: ksql
+base: core18
+version: '5.1.2'
+summary: Streaming SQL interactive client for Apache Kafka
+description: |
+  This snap installs an interactive KSQL client for development and operations.
+  
+  Confluent KSQL is the streaming SQL engine that enables real-time data
+  processing against Apache Kafka®. It provides an easy-to-use, yet powerful
+  interactive SQL interface for stream processing on Kafka, without the need to
+  write code in a programming language such as Java or Python. KSQL is scalable,
+  elastic, fault-tolerant, and it supports a wide range of streaming operations,
+  including data filtering, transformations, aggregations, joins, windowing, and
+  sessionization.
+
+grade: stable # must be 'stable' to release into candidate/stable channels
+confinement: classic # use 'strict' once you have the right plugs and slots
+
+apps:
+  ksql:
+    command: ksql-wrapper.bash
+
+parts:
+  deps:
+    plugin: nil
+    stage-packages:
+    - default-jre-headless
+    build-packages:
+    - software-properties-common
+    - wget
+    override-build: |-
+      wget -qO - https://packages.confluent.io/deb/5.1/archive.key | sudo apt-key add -
+      sudo add-apt-repository "deb [arch=amd64] https://packages.confluent.io/deb/5.1 stable main"
+    stage:
+    - -usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
+  ksql:
+    after:
+    - deps
+    plugin: nil
+    stage-packages:
+    - confluent-ksql
+  wrapper:
+    plugin: dump
+    source: snap/local
