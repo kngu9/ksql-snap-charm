@@ -1,0 +1,17 @@
+name: ksql
+summary: Streaming SQL engine that enables real-time data processing against Apache Kafka.
+maintainer: Khanh Nguyen <khanh.nguyen@canonical.com>
+description: |
+  Provides an easy-to-use, yet powerful interactive SQL interface for stream processing on Kafka, without the need to write code in a programming language such as Java or Python. 
+  This is intended to be use for internal projects for Canonical Ltd. This charm is not intended for community use.
+tags:
+  - streaming
+  - sql
+  - kafka
+subordinate: false
+provides:
+  provides-relation:
+    interface: ksql
+requires:
+  requires-relation:
+    interface: kafka
