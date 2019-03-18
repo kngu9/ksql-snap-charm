@@ -47,6 +47,11 @@ def uninstall():
         hookenv.log("failed to remove snap: {}".format(e))
 
 def install_snap():
+    # Need to install the core snap explicit. If not, there's
+    # no slots for removable-media on a bionic install.
+    # Not sure if that's a snapd bug or intended behavior.
+    check_call(['snap', 'install', 'core'])
+
     cfg = config()
     # KSQL-Server's snap presedence is:
     # 1. Included in snap
