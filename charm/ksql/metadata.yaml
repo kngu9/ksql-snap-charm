@@ -1,0 +1,24 @@
+name: ksql
+summary: Streaming SQL engine that enables real-time data processing against Apache Kafka.
+maintainer: Khanh Nguyen <khanh.nguyen@canonical.com>
+description: |
+  Provides an easy-to-use, yet powerful interactive SQL interface for stream processing on Kafka, without the need to write code in a programming language such as Java or Python. 
+tags:
+  - storage
+  - streaming
+min-juju-version: "2.4.0"
+series:
+  - xenial
+  - bionic
+subordinate: false
+requires:
+  kafka:
+    interface: kafka
+provides:
+  http:
+    interface: http
+resources:
+  ksql-server:
+    type: file
+    filename: ksql-server.snap
+    description: KSQL-server snap package
