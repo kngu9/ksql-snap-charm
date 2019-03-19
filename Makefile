@@ -3,8 +3,8 @@ KSQL_VERSION := $(shell awk '/version:/ {print $$2}' ksql-server/snap/snapcraft.
 .PHONY: all
 all: snap charm
 
-.PHONY: dev
-dev: snap fat-charm
+.PHONY: schnapp
+schnapp: snap fat-charm
 
 .PHONY: snap
 snap: ksql-server/ksql-server_$(KSQL_VERSION)_amd64.snap

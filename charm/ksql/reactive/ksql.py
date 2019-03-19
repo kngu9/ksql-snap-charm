@@ -23,7 +23,7 @@ from pathlib import Path
 from OpenSSL import crypto
 from subprocess import check_call
 
-from charms.reactive import set_state, remove_state, when, when_not, hook, when_file_changed
+from charms.reactive import set_state, remove_state, when, when_not, hook, when_file_changed, when_any
 from charmhelpers.core import hookenv
 from charms.reactive.helpers import data_changed
 from charmhelpers.core.hookenv import log, config
@@ -59,9 +59,12 @@ def install_snap():
     # 3. Snap store with release channel specified in config
     snap_file = get_snap_file_from_charm() or hookenv.resource_get('ksql-server')
     if snap_file:
+        hookenv.log('Detected Ksql snap, installing {}'.format(snap_file))
         check_call(['snap', 'install', '--dangerous', snap_file])
     if not snap_file:
-        check_call(['snap', 'install', '--{}'.format(cfg['ksql-release-channel']), KSQL_SNAP])
+        channel = cfg['ksql-release-channel']
+        hookenv.log('No Ksql snap detected in charm, installing from snapstore with channel {}'.format(channel))
+        check_call(['snap', 'install', '--{}'.format(channel), KSQL_SNAP])
     
     set_state('ksql.available')
 
@@ -94,8 +97,11 @@ def waiting_for_certificates():
 )
 @when_not('ksql.started')
 def configure_ksql(kafka):
-    hookenv.status_set('maintenance', 'setting up ksql')
+    if len(kafka.kafkas()) < 1:
+        hookenv.status_set('blocked', 'waiting for >= 1 kafka units')
+        return
 
+    hookenv.status_set('maintenance', 'setting up ksql')
     ksql = Ksql()
     ksql.configure(kafka.kafkas())
     ksql.open_ports()
@@ -104,6 +110,10 @@ def configure_ksql(kafka):
     # set app version string for juju status output
     ksql_version = ksql.version() or 'unknown'
     hookenv.application_version_set(ksql_version)
+
+@when('website.available', 'ksql.started')
+def setup_website(website):
+    website.configure(KSQL_PORT)
 
 @when_file_changed(
     os.path.join(KSQL_SNAP_COMMON, 'etc', "ksql.client.jks"),
@@ -237,6 +247,23 @@ def import_ca_crt_to_keystore():
             os.chmod(ca_keystore, 0o440)
             remove_state('tls_client.ca_installed')
             set_state('ksql.ca.keystore.saved')
+
+@when('update-status')
+def health_check():
+    # Health check will attempt to restart Ksql service, if the service is not running
+    ksql = Ksql()
+    if ksql.is_running():
+        hookenv.status_set('active', 'ready')
+        return
+
+    for i in range(3):
+        hookenv.status_set('maintenance', 'attempting to restart ksql, attempt: {}'.format(i+1))
+        ksql.restart()
+        if ksql.is_running():
+            hookenv.status_set('active', 'ready')
+            return
+
+    hookenv.status_set('blocked', 'max times exceeded while trying to repair ksql')
 
 def _keystore_password():
     path = os.path.join(

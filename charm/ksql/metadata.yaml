@@ -15,7 +15,7 @@ requires:
   kafka:
     interface: kafka
 provides:
-  http:
+  website:
     interface: http
 resources:
   ksql-server:
