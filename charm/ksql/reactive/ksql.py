@@ -24,7 +24,7 @@ from OpenSSL import crypto
 from subprocess import check_call
 
 from charms.reactive import set_state, remove_state, when, when_not, hook, when_file_changed, when_any
-from charmhelpers.core import hookenv
+from charmhelpers.core import hookenv, unitdata
 from charms.reactive.helpers import data_changed
 from charmhelpers.core.hookenv import log, config
 
@@ -102,6 +102,11 @@ def configure_ksql(kafka):
         return
 
     hookenv.status_set('maintenance', 'setting up ksql')
+
+    log_dir = unitdata.kv().get('ksql.storage.storage')
+    if not data_changed('ksql.storage.state', log_dir):
+        return
+
     ksql = Ksql()
     ksql.configure(kafka.kafkas())
     ksql.open_ports()
@@ -264,6 +269,40 @@ def health_check():
             return
 
     hookenv.status_set('blocked', 'max times exceeded while trying to repair ksql')
+
+@hook('state-storage-attached')
+def storage_attach():
+    storageids = hookenv.storage_list('state')
+    if not storageids:
+        hookenv.status_set('blocked', 'cannot locate attached storage')
+        return
+    storageid = storageids[0]
+
+    storagedir = hookenv.storage_get('location', storageid)
+    if not storagedir:
+        hookenv.status_set('blocked', 'cannot locate attached storage mount')
+        return
+
+    unitdata.kv().set('ksql.storage.state', storagedir)
+    hookenv.log('Ksql logs storage attached at {}'.format(storagedir))
+
+    ksql = Ksql()
+    ksql.close_ports()
+    ksql.stop()
+    remove_state('ksql.started')
+    hookenv.status_set('waiting', 'reconfiguring to use attached storage')
+    set_state('ksql.storage.logs.attached')
+
+
+@hook('logs-storage-detaching')
+def storage_detaching():
+    unitdata.kv().unset('ksql.storage.state')
+    ksql = Ksql()
+    ksql.close_ports()
+    ksql.stop()
+    remove_state('ksql.started')
+    hookenv.status_set('waiting', 'reconfiguring to use temporary storage')
+    remove_state('ksql.storage.logs.attached')
 
 def _keystore_password():
     path = os.path.join(

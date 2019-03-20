@@ -44,7 +44,7 @@ class Ksql(object):
     def cluster_id(self):
         return self.cfg['ksql-cluster-id']
 
-    def configure(self, kafka_units):
+    def configure(self, kafka_units, state_dir=None):
         kafka = []
         for unit in kafka_units:
             ip = resolve_private_address(unit['host'])
@@ -68,7 +68,8 @@ class Ksql(object):
                 "ksql.client.truststore.jks"
             ),
             'ksql_cluster_id': self.cfg['ksql-cluster-id'],
-            'listener_addr': ':'.join([hookenv.unit_private_ip(), str(KSQL_PORT)])
+            'listener_addr': ':'.join([hookenv.unit_private_ip(), str(KSQL_PORT)]),
+            'state_dir': state_dir
         }
 
         render(
