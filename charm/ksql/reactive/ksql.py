@@ -48,46 +48,39 @@ def configure():
     hookenv.application_version_set(ksql.version())
 
 
-@when('snap.installed.ksql-server')
-@when_not('ksql.client.keystore.saved')
+@when('ksql.available')
+@when_not('kafka.joined')
+def waiting_for_kafka():
+    ksql = Ksql()
+    ksql.close_ports()
+    ksql.stop()
+    hookenv.status_set('blocked', 'waiting for relation to kafka')
+
+
+@when_not(
+    'ksql.ca.keystore.saved',
+    'ksql.server.keystore.saved',
+)
+@when('ksql.available')
 def waiting_for_certificates():
-    remove_state('ksql.available')
     hookenv.status_set('waiting', 'waiting for easyrsa relation')
 
 
-@when('snap.installed.ksql-server')
-@when_not('kafka.joined', 'kafka.joined')
-def waiting_for_kafka():
-    hookenv.status_set('waiting', 'waiting for kafka relation')
-
-
 @when(
-    'snap.installed.ksql-server',
-    'ksql.ready',
+    'ksql.available',
+    'kafka.ready',
+    'ksql.ca.keystore.saved',
     'ksql.client.keystore.saved'
 )
-@when_not('ksql.available')
-def configure_kafka(kafka):
+@when_not('ksql.started')
+def configure_ksql(kafka):
     hookenv.status_set('maintenance', 'setting up ksql')
 
-    remove_state('ksql.configured')
-    set_flag('ksql.force-reconfigure')
-
-
-@when(
-    'ksql.configured'
-    'kafka.joined'
-)
-def configure_ksql_kafkas(kafka):
-    """
-    As kafka brokers come and go, ksql-server.properties will be updated.
-    When that file changes, restart Kafka and set appropriate status messages.
-    """
-    kafkas = kafka.kafkas()
-
-    if not data_changed('ksql.kafka_units', kafkas):
-        return
-
-    log('kafka(s) joined, forcing reconfiguration')
-    remove_state('ksql.configured')
-    set_flag('ksql.force-reconfigure')
+    ksql = Ksql()
+    ksql.install(kafka_units=kafka.kafkas())
+    ksql.open_ports()
+    set_state('ksql.available')
+    hookenv.status_set('active', 'ready')
+    # set app version string for juju status output
+    ksql_version = ksql.version()
+    hookenv.application_version_set(ksql_version)
