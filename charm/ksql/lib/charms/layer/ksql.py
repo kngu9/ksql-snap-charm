@@ -48,7 +48,7 @@ class Ksql(object):
         '''
         hookenv.close_port(KSQL_PORT)
 
-    def install(self, kafka_units=[], proxy=False):
+    def install(self, kafka_units=[]):
         '''
         Generates ksql-server.properties with the current system state.
         '''

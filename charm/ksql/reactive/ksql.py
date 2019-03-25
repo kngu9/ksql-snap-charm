@@ -42,7 +42,7 @@ def configure():
         ksql.open_ports()
 
     clear_flag('ksql.force-reconfigure')
-    set_flag('ksql.available')
+    set_state('ksql.available')
     set_state('ksql.configured')
 
     hookenv.application_version_set(ksql.version())
@@ -56,9 +56,8 @@ def waiting_for_certificates():
 
 
 @when('snap.installed.ksql-server')
-@when_not('kafka.ready')
+@when_not('kafka.joined', 'kafka.joined')
 def waiting_for_kafka():
-    remove_state('ksql.available')
     hookenv.status_set('waiting', 'waiting for kafka relation')
 
 
@@ -77,7 +76,7 @@ def configure_kafka(kafka):
 
 @when(
     'ksql.configured'
-    'kafka.available'
+    'kafka.joined'
 )
 def configure_ksql_kafkas(kafka):
     """
