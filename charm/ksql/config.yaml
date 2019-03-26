@@ -1,21 +1,5 @@
 options:
-  ksql-release-channel:
-    type: string
-    default: stable
-    description: The release channel of the ksql-server snap package. This will be ignored if the snap file is attached as a resource or built with the charm.
   ksql-cluster-id:
     type: string
     default: development
     description: The KSQL cluster id that the KSQL server will be assigned to.
-  ksql-listener-port:
-    type: int
-    default: 8088
-    description: The port where the REST server will listen on
-  ksql-listener-protocol:
-    type: string
-    default: http
-    description: The protocol that the REST server will listenn on
-  use-ssl:
-    type: boolean
-    default: true
-    description: Should KSQL connect to Kafka via SSL orr plaintext

@@ -1,10 +1,11 @@
 KSQL_VERSION := $(shell awk '/version:/ {print $$2}' ksql-server/snap/snapcraft.yaml | head -1 | sed "s/'//g")
 
 .PHONY: all
-all: snap charm
+all: snap lint charm
 
-.PHONY: dev
-dev: snap fat-charm
+.PHONY: lint
+lint:
+	flake8 --ignore=E121,E123,E126,E226,E24,E704,E265 charm/ksql
 
 .PHONY: snap
 snap: ksql-server/ksql-server_$(KSQL_VERSION)_amd64.snap
@@ -14,11 +15,6 @@ ksql-server/ksql-server_$(KSQL_VERSION)_amd64.snap:
 
 .PHONY: charm
 charm: charm/builds/ksql
-
-.PHONY: fat-charm
-fat-charm: ksql-server/ksql-server_$(KSQL_VERSION)_amd64.snap ./charm/builds/ksql
-	cp -rf $< charm/ksql
-	$(MAKE) -C charm/ksql
 
 charm/builds/ksql:
 	$(MAKE) -C charm/ksql

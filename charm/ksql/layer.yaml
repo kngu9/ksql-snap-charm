@@ -4,3 +4,9 @@ includes:
 - 'interface:http'
 - 'interface:tls-certificates'
 - 'layer:tls-client'
+- "layer:snap"
+options:
+  snap:
+    core: {}
+    ksql-server: {}
+repo: https://github.com/cloud-green/ksql-snap-charm.git
