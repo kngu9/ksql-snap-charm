@@ -36,12 +36,8 @@ def config_changed():
 def configure(kafka_units=None):
     ksql = Ksql()
     kafkas = kafka_units or ksql.get_kafkas()
-    changed = any((
-        data_changed('ksql.kafka_units', kafkas),
-        data_changed('ksql.cluster-id', config()['ksql_cluster_id'])
-    ))
 
-    if changed or is_flag_set('ksql.force-reconfigure'):
+    if data_changed('ksql.kafka_units', kafkas) or is_flag_set('ksql.force-reconfigure'):
         ksql.install(kafka_units=kafkas)
         ksql.open_ports()
 
