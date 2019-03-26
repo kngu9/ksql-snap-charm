@@ -22,7 +22,7 @@ from charms.reactive import (set_state, remove_state, when, when_not,
                              when_any)
 from charms.reactive.helpers import data_changed
 
-from charmhelpers.core.hookenv import log
+from charmhelpers.core.hookenv import log, config
 
 
 @hook('config-changed')
@@ -33,11 +33,15 @@ def config_changed():
 
 @when('snap.installed.ksql-server')
 @when_not('ksql.configured')
-def configure():
+def configure(kafka_units=None):
     ksql = Ksql()
-    kafkas = ksql.get_kafkas()
+    kafkas = kafka_units or ksql.get_kafkas()
+    changed = any((
+        data_changed('ksql.kafka_units', kafkas),
+        data_changed('ksql.cluster-id', config()['ksql_cluster_id'])
+    ))
 
-    if data_changed('ksql.kafka_units', kafkas) or is_flag_set('ksql.force-reconfigure'):
+    if changed or is_flag_set('ksql.force-reconfigure'):
         ksql.install(kafka_units=kafkas)
         ksql.open_ports()
 
@@ -76,11 +80,5 @@ def waiting_for_certificates():
 def configure_ksql(kafka):
     hookenv.status_set('maintenance', 'setting up ksql')
 
-    ksql = Ksql()
-    ksql.install(kafka_units=kafka.kafkas())
-    ksql.open_ports()
-    set_state('ksql.available')
+    configure(kafka.kafkas())
     hookenv.status_set('active', 'ready')
-    # set app version string for juju status output
-    ksql_version = ksql.version()
-    hookenv.application_version_set(ksql_version)
