@@ -13,16 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from charms.layer.ksql import Ksql, KSQL_SNAP_COMMON
+from charms.layer.ksql import Ksql
 
 from charmhelpers.core import hookenv
 
 from charms.reactive import (set_state, remove_state, when, when_not,
-                             hook, clear_flag, is_flag_set, set_flag,
-                             when_any)
+                             hook, clear_flag, is_flag_set, set_flag)
 from charms.reactive.helpers import data_changed
-
-from charmhelpers.core.hookenv import log, config
 
 
 @hook('config-changed')
@@ -37,7 +34,8 @@ def configure(kafka_units=None):
     ksql = Ksql()
     kafkas = kafka_units or ksql.get_kafkas()
 
-    if data_changed('ksql.kafka_units', kafkas) or is_flag_set('ksql.force-reconfigure'):
+    if data_changed('ksql.kafka_units',
+                    kafkas) or is_flag_set('ksql.force-reconfigure'):
         ksql.install(kafka_units=kafkas)
         ksql.open_ports()
 

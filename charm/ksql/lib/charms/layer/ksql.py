@@ -32,7 +32,8 @@ KSQL_PORT = 8088
 KSQL_SNAP = 'ksql-server'
 KSQL_SERVICE = 'snap.{}.ksql-server.service'.format(KSQL_SNAP)
 KSQL_SNAP_COMMON = '/var/snap/{}/common'.format(KSQL_SNAP)
-KSQL_KEYTOOL_PATH = '/snap/{}/current/usr/lib/jvm/default-java/bin/keytool'.format(KSQL_SNAP)
+KSQL_KEYTOOL_PATH = ('/snap/{}/current/usr/lib/jvm/default-java'
+                     '/bin/keytool').format(KSQL_SNAP)
 
 
 class Ksql(object):
@@ -58,10 +59,11 @@ class Ksql(object):
             kafka.append('{}:{}'.format(ip, unit['port']))
         kafka.sort()
         kafka_connect = ','.join(kafka)
-        
+
         context = {
             'bootstrap_servers': kafka_connect,
-            'listener_addr': ':'.join([hookenv.unit_private_ip(), str(KSQL_PORT)]),
+            'listener_addr': ':'.join([hookenv.unit_private_ip(),
+                                       str(KSQL_PORT)]),
             'keystore_password': keystore_password(),
             'snap_name': KSQL_SNAP,
             'ca_keystore': os.path.join(
@@ -79,7 +81,8 @@ class Ksql(object):
 
         render(
             source='ksql-server.properties',
-            target=os.path.join(KSQL_SNAP_COMMON, 'etc', 'ksql-server.properties'),
+            target=os.path.join(KSQL_SNAP_COMMON, 'etc',
+                                'ksql-server.properties'),
             owner="root",
             perms=0o644,
             context=context
