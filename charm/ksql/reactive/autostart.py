@@ -2,7 +2,7 @@ from charms.layer.ksql import Ksql
 
 from charmhelpers.core import hookenv
 
-from charms.reactive import when, set_state, remove_state
+from charms.reactive import when
 
 
 @when('ksql.available')
