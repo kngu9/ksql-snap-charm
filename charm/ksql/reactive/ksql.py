@@ -15,7 +15,7 @@
 
 from charms.layer.ksql import Ksql
 
-from charmhelpers.core import hookenv
+from charmhelpers.core import hookenv, unitdata
 
 from charms.reactive import (set_state, remove_state, when, when_not,
                              hook, clear_flag, is_flag_set, set_flag)
@@ -33,10 +33,14 @@ def config_changed():
 def configure(kafka_units=None):
     ksql = Ksql()
     kafkas = kafka_units or ksql.get_kafkas()
+    state_dir = unitdata.kv().get('ksql.storage.state_dir')
+    changed = any((
+       data_changed('ksql.kafka_units', kafkas),
+       data_changed('ksql.storage.state_dir', state_dir)
+    ))
 
-    if data_changed('ksql.kafka_units',
-                    kafkas) or is_flag_set('ksql.force-reconfigure'):
-        ksql.install(kafka_units=kafkas)
+    if changed or is_flag_set('ksql.force-reconfigure'):
+        ksql.install(kafka_units=kafkas, state_dir=state_dir)
         ksql.open_ports()
 
     clear_flag('ksql.force-reconfigure')

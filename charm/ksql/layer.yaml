@@ -4,9 +4,11 @@ includes:
 - 'interface:http'
 - 'interface:tls-certificates'
 - 'layer:tls-client'
-- "layer:snap"
+- 'layer:snap'
 options:
   snap:
     core: {}
-    ksql-server: {}
+    ksql-server:
+      connect:
+        - ['ksql-server:removable-media', 'core:removable-media']
 repo: https://github.com/cloud-green/ksql-snap-charm.git
