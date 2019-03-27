@@ -21,7 +21,7 @@ storage:
   state:
     type: filesystem
     description: Directory where KSQL state is stored
-    minimum-size: 20G
+    minimum-size: 20M
     location: /media/ksql
     multiple:
       range: "0-1"
