@@ -49,7 +49,7 @@ class Ksql(object):
         '''
         hookenv.close_port(KSQL_PORT)
 
-    def install(self, kafka_units=[]):
+    def install(self, kafka_units=[], state_dir=None):
         '''
         Generates ksql-server.properties with the current system state.
         '''
@@ -60,12 +60,17 @@ class Ksql(object):
         kafka.sort()
         kafka_connect = ','.join(kafka)
 
+        if not state_dir:
+            state_dir = '/var/snap/{}/common/kafka-streams'.format(
+                KSQL_SNAP
+            )
+
         context = {
             'bootstrap_servers': kafka_connect,
             'listener_addr': ':'.join([hookenv.unit_private_ip(),
                                        str(KSQL_PORT)]),
             'keystore_password': keystore_password(),
-            'snap_name': KSQL_SNAP,
+            'state_dir': state_dir,
             'ca_keystore': os.path.join(
                 KSQL_SNAP_COMMON,
                 'etc',
@@ -129,7 +134,7 @@ class Ksql(object):
 
         If the flag has never been set, an empty list will be returned.
         '''
-        kafka = RelationBase.from_flag('kafka.ready')
+        kafka = RelationBase.from_flag('kafka.joined')
         if kafka:
             return kafka.kafkas()
         else:

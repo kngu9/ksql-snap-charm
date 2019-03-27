@@ -30,6 +30,7 @@ clean-charm:
 .PHONY: clean-snap
 clean-snap:
 	(cd ksql-server; snapcraft clean)
+	$(RM) ksql-server/ksql-server_$(KSQL_VERSION)_amd64.snap
 	
 sysdeps: /snap/bin/charm /snap/bin/snapcraft
 /snap/bin/charm:
