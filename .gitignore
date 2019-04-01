@@ -5,6 +5,7 @@ snap/.snapcraft
 .*.swp
 *.snap
 *_source.tar.bz2
+.DS_Store
 charm/builds
 charm/deps
-.DS_Store
+charm/ksql/files/

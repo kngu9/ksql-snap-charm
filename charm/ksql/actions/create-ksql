@@ -1,0 +1,35 @@
+#!/usr/bin/python3
+
+import sys
+import os
+import tempfile
+from subprocess import call, run, PIPE
+
+from charmhelpers.core import hookenv
+
+
+create_binary = os.path.join(
+    os.environ["JUJU_CHARM_DIR"],
+    'files',
+    'create-ksql')
+
+fd, config_file = tempfile.mkstemp()
+with os.fdopen(fd, 'w') as out:
+    call(['action-get', 'entries'], stdout=out)
+
+env_vars = os.environ.copy()
+env_vars['KSQL_CONFIG'] = config_file
+env_vars['KSQL_SERVER'] = "http://{}:8088".format(hookenv.unit_private_ip())
+result = run(
+    [create_binary],
+    stdout=PIPE,
+    stderr=PIPE,
+    env=env_vars)
+if result.returncode:
+    call['action-fail', result.stderr.decode("utf-8")]
+else:
+    call['action-set', 'outcome="success"']
+
+os.remove(config_file)
+
+sys.exit(0)
