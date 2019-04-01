@@ -18,6 +18,8 @@ charm: charm/builds/ksql
 
 charm/builds/ksql:
 	$(MAKE) -C charm/ksql
+	(cd create-ksql; go build; mv create-ksql ../charm/builds/ksql/files/) 
+
 
 .PHONY: clean
 clean: clean-charm clean-snap
@@ -26,6 +28,7 @@ clean: clean-charm clean-snap
 clean-charm:
 	$(RM) -r charm/builds charm/deps
 	$(RM) charm/ksql/*.snap
+	$(RM) create-ksql/crete-ksql
 
 .PHONY: clean-snap
 clean-snap:

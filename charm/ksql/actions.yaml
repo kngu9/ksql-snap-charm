@@ -1,0 +1,8 @@
+create-ksql:
+  description: Runs the ksql scripts to create streams/tables.
+  params:
+    entries_yaml:
+      type: string
+      description: YAML formated list of ksql entries to create.
+  required: [entries_yaml]
+  additionalProperties: false
