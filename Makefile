@@ -17,9 +17,9 @@ ksql-server/ksql-server_$(KSQL_VERSION)_amd64.snap:
 charm: charm/builds/ksql
 
 charm/builds/ksql:
+	mkdir -p charm/ksql/files
+	go build -o charm/ksql/files/create-ksql ./create-ksql
 	$(MAKE) -C charm/ksql
-	(cd create-ksql; go build; mv create-ksql ../charm/builds/ksql/files/) 
-
 
 .PHONY: clean
 clean: clean-charm clean-snap
@@ -28,15 +28,16 @@ clean: clean-charm clean-snap
 clean-charm:
 	$(RM) -r charm/builds charm/deps
 	$(RM) charm/ksql/*.snap
-	$(RM) create-ksql/crete-ksql
 
 .PHONY: clean-snap
 clean-snap:
 	(cd ksql-server; snapcraft clean)
 	$(RM) ksql-server/ksql-server_$(KSQL_VERSION)_amd64.snap
 	
-sysdeps: /snap/bin/charm /snap/bin/snapcraft
+sysdeps: /snap/bin/charm /snap/bin/snapcraft /usr/bin/flake8
 /snap/bin/charm:
 	sudo snap install charm --classic
 /snap/bin/snapcraft:
 	sudo snap install snapcraft --classic
+/usr/bin/flake8:
+	sudo apt-get install -y flake8
