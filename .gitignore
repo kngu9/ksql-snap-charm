@@ -8,4 +8,4 @@ snap/.snapcraft
 .DS_Store
 charm/builds
 charm/deps
-charm/ksql/files/
+charm/ksql/files/create-ksql

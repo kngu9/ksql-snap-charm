@@ -17,6 +17,12 @@ requires:
 provides:
   website:
     interface: http
+  nrpe-external-master:
+    interface: nrpe-external-master
+    scope: container
+  local-monitors:
+    interface: local-monitors
+    scope: container
 storage:
   state:
     type: filesystem

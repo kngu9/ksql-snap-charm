@@ -5,7 +5,13 @@ includes:
 - 'interface:tls-certificates'
 - 'layer:tls-client'
 - 'layer:snap'
+- 'interface:nrpe-external-master'
+- 'interface:local-monitors'
 options:
+  basic:
+    packages:
+      - python3
+      - default-jre-headless
   snap:
     core: {}
     ksql-server:

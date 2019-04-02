@@ -28,6 +28,12 @@ def config_changed():
     set_flag('ksql.force-reconfigure')
 
 
+@hook('upgrade-charm')
+def upgrade_charm():
+    remove_state('ksql.nrpe_helper.installed')
+    remove_state('ksql.configured')
+
+
 @when('snap.installed.ksql-server')
 @when_not('ksql.configured')
 def configure(kafka_units=None):

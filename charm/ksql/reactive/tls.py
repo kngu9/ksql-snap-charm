@@ -5,8 +5,7 @@ from OpenSSL import crypto
 from subprocess import check_call
 
 from charms.layer import tls_client
-from charms.layer.ksql import (keystore_password, KSQL_SNAP_COMMON,
-                               KSQL_KEYTOOL_PATH)
+from charms.layer.ksql import keystore_password, KSQL_SNAP_COMMON
 
 from charms.reactive import (when, when_file_changed, remove_state,
                              when_not, set_state, set_flag)
@@ -21,7 +20,7 @@ from charmhelpers.core.hookenv import log
 def send_data():
     # Request a server cert with this information.
     tls_client.request_client_cert(
-        'system:snap-kafka',
+        'system:snap-ksql',
         crt_path=os.path.join(
             KSQL_SNAP_COMMON,
             'etc',
@@ -40,8 +39,8 @@ def send_data():
     os.path.join(KSQL_SNAP_COMMON, 'etc', 'ksql.client.truststore.jks')
 )
 def restart_when_keystore_changed():
-    remove_state('kafka.configured')
-    set_flag('kafka.force-reconfigure')
+    remove_state('ksql.configured')
+    set_flag('ksql.force-reconfigure')
 
 
 @when('tls_client.certs.changed')
@@ -66,7 +65,7 @@ def import_srv_crt_to_keystore():
                 cert
             )
             if not data_changed(
-                'kafka_client_certificate',
+                'ksql_client_certificate',
                 cert
             ):
                 log('server certificate of key file missing')
@@ -100,7 +99,7 @@ def import_srv_crt_to_keystore():
             log('importing pkcs12')
             # import the pkcs12 into the keystore
             check_call([
-                KSQL_KEYTOOL_PATH,
+                'keytool',
                 '-v', '-importkeystore',
                 '-srckeystore', str(tmp.name),
                 '-srcstorepass', password,
@@ -134,7 +133,7 @@ def import_ca_crt_to_keystore():
                 'ksql.client.truststore.jks'
             )
             check_call([
-                KSQL_KEYTOOL_PATH,
+                'keytool',
                 '-import', '-trustcacerts', '-noprompt',
                 '-keystore', ca_keystore,
                 '-storepass', keystore_password(),
